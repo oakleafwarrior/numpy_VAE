@@ -22,6 +22,9 @@ class AdamOptimizer:
 
         # intializing time step
         self.t = 0
+
+        # initializing weights
+        self.weights = weights
         
         # intializing hyperparams
         self.alpha = alpha
@@ -38,16 +41,15 @@ class AdamOptimizer:
         """
         
         self.t += 1
+        alpha_t = self.alpha * np.sqrt(1-self.beta2 ** self.t) / (1-self.beta1 ** self.t)
 
         for key in weights.keys():
             # updating moments
             self.m[key] = self.beta1 * self.m[key] + (1-self.beta1) * grads[key]
-            self.v[key] = self.beta2 * self.v[key] + (1-self.beta2) * grads[key]
-
-            self.alpha = self.alpha * np.sqrt(1-self.beta2 ** self.t) / (1-self.beta1 ** self.t)
+            self.v[key] = self.beta2 * self.v[key] + (1-self.beta2) * grads[key] ** 2
 
             # updating weights
-            weights[key] -= self.alpha * self.m[key] / (np.sqrt(self.v[key]) + self.eps)
+            weights[key] -= alpha_t * self.m[key] / (np.sqrt(self.v[key]) + self.eps)
 
         
 
