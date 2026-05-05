@@ -11,7 +11,7 @@ No AI agents were used to write any code, but I did ask Gemini for help with som
 ## Repository Outline
 ```
 .
-├── src/                # Source code (the heavy lifting)
+├── src/                # Source code
 │   ├── model.py        # VAE model
 │   ├── utils.py        # Adam optimizer and some plotting and clustering functions
 │   └── train.py        # a wrapper to train the model
