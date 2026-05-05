@@ -89,16 +89,23 @@ class VAE:
         # encoding latent representation params
         Wmu = self.params['Wmu']
         bmu = self.params['bmu']
-        Wlv = self.params['bmu']
+        Wlv = self.params['Wlv']
         blv = self.params['blv']
-
+        
+        # computing and caching latent representation params
         mu = A @ Wmu + bmu
         lv = A @ Wlv + blv
+
+        # numerical stability fix
+        lv = np.clip(lv, -50, 50)
+
+        self.cache['mu'] = mu
+        self.cache['lv'] = lv
 
         return mu, lv
     
     def reparam_trick(self, mu, lv):
-        eps = np.random.multivariate_normal(np.zeros_like(mu), np.identity(len(mu)))
+        eps = np.random.randn(*mu.shape)
         self.cache['eps'] = eps
         v = np.exp(0.5 * lv)
         return mu + np.multiply(v, eps)
@@ -115,7 +122,7 @@ class VAE:
         # hidden layers except the end
         self.cache['Ad'] = Z
         A = Z
-        for i in range(len(self.hidden_dims)-1):
+        for i in range(len(self.hidden_dims)):
             W = self.params[f'Wd{i}']
             b = self.params[f'bd{i}']
             Z = A @ W + b
@@ -124,9 +131,13 @@ class VAE:
             self.cache[f'Ad{i}'] = A
         
         # last sigmoid hidden layer and output
-        W_out = self.params[f'Wd{len(self.hidden_dims)-1}']
-        b_out = self.params[f'bd{len(self.hidden_dims)-1}']
+        W_out = self.params['W_out']
+        b_out = self.params['b_out']
         Z_out = A @ W_out + b_out
+
+        # numerical stability fix
+        Z_out = np.clip(Z_out, -500, 500)
+
         A_out = 1 / (1 + np.exp(-Z_out))
         self.cache[f'Z_out'] = Z_out
         self.cache[f'A_out'] = A_out
@@ -180,13 +191,13 @@ class VAE:
 
         # output gradients
         A_prev = self.cache[f'Ad{len(self.hidden_dims)-1}']
-        grads['Wd_out'] = A_prev.T @ dZ
-        grads['bd_out'] = np.sum(dZ, axis = 0, keepdims = True)
+        grads['W_out'] = A_prev.T @ dZ
+        grads['b_out'] = np.sum(dZ, axis = 0, keepdims = True)
 
         # backprop output weights
         W_out = self.params['W_out']
-        dA_prev = dZ @ A_prev
-        dZ = dA_prev @ (A_prev > 0).astype(float)
+        dA_prev = dZ @ W_out.T
+        dZ = dA_prev * (A_prev > 0).astype(float)
 
         # decoder backwards pass
         for i in range(len(self.hidden_dims)-1,-1, -1):
@@ -226,11 +237,11 @@ class VAE:
         # encoder backward pass (same structure as decoder)
 
         # (mu, lv) head of encoder
-        Ae_out = self.cache[f'Ae{len(self.hidden_dims)}']
-        grads['We_mu'] = Ae_out.T @ dZ_mu
-        grads['We_lv'] = Ae_out.T @ dZ_lv
-        grads['be_mu'] = np.sum(dZ_mu, axis = 0, keepdims = True)
-        grads['be_lv'] = np.sum(dZ_lv, axis = 0, keepdims = True)
+        Ae_out = self.cache[f'Ae{len(self.hidden_dims)-1}']
+        grads['Wmu'] = Ae_out.T @ dZ_mu
+        grads['Wlv'] = Ae_out.T @ dZ_lv
+        grads['bmu'] = np.sum(dZ_mu, axis = 0, keepdims = True)
+        grads['blv'] = np.sum(dZ_lv, axis = 0, keepdims = True)
 
         for i in range(len(self.hidden_dims)-1,-1,-1):
             if i == 0:
@@ -260,7 +271,7 @@ class VAE:
         """
         # foward pass yielding reconstructed data
         Xhat = self.forward_pass(X)
-        
+
         # latent vars
         mu = self.cache['mu']
         lv = self.cache['lv']
