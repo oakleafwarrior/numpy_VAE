@@ -18,10 +18,13 @@ No AI agents were used to write any code, but I did ask Gemini for help with som
 ├── .gitignore          # Files to exclude from Git
 ├── README.md           # Voila
 ├── mnist_notebook.md   # Notebook testing the VAE and showing how latent clustering is helpful
-└── requirements.txt    # List of dependencies
+├── intro_to_VAEs.pdf   # Expository paper about VAEs and how they work.
+└── environment.yml     # environment with all the necessary libraries
 \```
 
-To experiment with the VAE and see a toy example of why latent space clustering can be helpful, check out mnist_notebook.md.
+To experiment with the VAE and see a toy example of why latent space clustering can be helpful, check out mnist_notebook.md. I will not be writing an explanation of how VAEs work. See `intro_to_VAEs.pdf` (cited below) to learn more. 
+
+Diederik, P. Kingma, and Welling Max. "An introduction to variational autoencoders." Foundations and Trends® in Machine Learning 12.4 (2019): 307-392.
 
 ## Future plans
 After I finish implementing an scVI autoencoder, I may try to write a basic VAe in C to learn C.
