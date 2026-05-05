@@ -20,7 +20,7 @@ No AI agents were used to write any code, but I did ask Gemini for help with som
 ├── mnist_notebook.md   # Notebook testing the VAE and showing how latent clustering is helpful
 ├── intro_to_VAEs.pdf   # Expository paper about VAEs and how they work.
 └── environment.yml     # Environment with all the necessary libraries
-\```
+```
 
 To experiment with the VAE and see a toy example of why latent space clustering can be helpful, check out mnist_notebook.md. 
 I will not be writing an explanation of how VAEs work. See `intro_to_VAEs.pdf` (cited below) to learn more. 
